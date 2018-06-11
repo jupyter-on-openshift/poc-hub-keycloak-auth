@@ -1,5 +1,6 @@
 import os
 import string
+import escapism
 
 from jupyterhub.app import DATA_FILES_PATH
 
