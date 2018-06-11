@@ -189,8 +189,7 @@
                             "type": "Git",
                             "git": {
                                 "uri": "https://github.com/jupyter-on-openshift/poc-hub-shared-storage-1.git"
-                            },
-                            "contextDir": "jupyterhub"
+                            }
                         },
                         "strategy": {
                             "type": "Source",
