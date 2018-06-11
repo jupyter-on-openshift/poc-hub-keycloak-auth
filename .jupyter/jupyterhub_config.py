@@ -1,4 +1,5 @@
 import os
+import string
 
 from jupyterhub.app import DATA_FILES_PATH
 
