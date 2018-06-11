@@ -12,6 +12,10 @@ c.MyOAuthenticator.oauth_callback_url = os.environ.get('OAUTH_CALLBACK_URL' )
 c.MyOAuthenticator.client_id = os.environ.get('OAUTH_CLIENT_ID')
 c.MyOAuthenticator.client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
 
+c.KubeSpawner.environment = {
+    "NOTEBOOK_ARGS": "--NotebookApp.default_url=/tree/workspace"
+}
+
 c.KubeSpawner.user_storage_pvc_ensure = True
 
 c.KubeSpawner.pvc_name_template = '%s-notebooks' % c.KubeSpawner.hub_connect_ip
