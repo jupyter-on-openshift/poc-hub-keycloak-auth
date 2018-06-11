@@ -31,7 +31,7 @@ volume_mounts = [
     {
         'name': 'notebooks',
         'mountPath': '/opt/app-root/src',
-        'subPath': '{username}'
+        'subPath': 'notebooks/{username}'
     }
 ]
 
@@ -41,8 +41,8 @@ init_containers = [
         'image': os.environ['JUPYTERHUB_NOTEBOOK_IMAGE'],
         'command': [
             'setup-volume.sh',
-            '/opt/app-root',
-            '/mnt/app-root/{username}/workspace'
+            '/opt/app-root/src',
+            '/mnt/notebooks/{username}/workspace'
         ],
         'resources': {
             'limits': {
