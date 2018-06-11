@@ -79,8 +79,10 @@ def expand_strings(spawner, src):
         return src
 
 def modify_pod_hook(spawner, pod):
-    pod.spec.containers[0].volume_mounts = expand_strings(spawner, volume_mounts)
-    pod.spec.init_containers.append(expand_strings(spawner, init_containers))
+    pod.spec.containers[0].volume_mounts.extend(
+            expand_strings(spawner, volume_mounts))
+    pod.spec.init_containers.extend(
+            expand_strings(spawner, init_containers))
     return pod
 
 c.KubeSpawner.modify_pod_hook = modify_pod_hook
