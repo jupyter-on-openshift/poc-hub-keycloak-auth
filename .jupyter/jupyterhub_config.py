@@ -23,6 +23,7 @@ c.KubeSpawner.volumes = [
             'claimName': c.KubeSpawner.pvc_name_template
         }
     }
+]
 
 volume_mounts = [
     {
@@ -61,19 +62,19 @@ def interpolate_properties(spawner, template):
             escape_char='-').lower()
 
     return template.format(
-	userid=spawner.user.id,
-	username=username
-	)
+        userid=spawner.user.id,
+        username=username
+        )
 
 def expand_strings(spawner, src):
     if isinstance(src, list):
-	return [expand_strings(spawner, i) for i in src]
+        return [expand_strings(spawner, i) for i in src]
     elif isinstance(src, dict):
-	return {k: expand_strings(spawner, v) for k, v in src.items()}
+        return {k: expand_strings(spawner, v) for k, v in src.items()}
     elif isinstance(src, str):
-	return interpolate_properties(spawner, src)
+        return interpolate_properties(spawner, src)
     else:
-	return src
+        return src
 
 def modify_pod_hook(spawner, pod):
     pod.spec.containers[0].volume_mounts = expand_strings(spawner, volume_mounts)
