@@ -2,8 +2,6 @@ import os
 import string
 import escapism
 
-from jupyterhub.app import DATA_FILES_PATH
-
 if os.environ.get('OAUTH_SERVICE_TYPE') == 'GitHub':
     from oauthenticator.github import GitHubOAuthenticator
     c.JupyterHub.authenticator_class = GitHubOAuthenticator
