@@ -88,3 +88,14 @@ def modify_pod_hook(spawner, pod):
     return pod
 
 c.KubeSpawner.modify_pod_hook = modify_pod_hook
+
+idle_timeout = os.environ.get('JUPYTERHUB_IDLE_TIMEOUT')
+
+if idle_timeout and int(idle_timeout):
+    c.JupyterHub.services = [
+        {
+            'name': 'cull-idle',
+            'admin': True,
+            'command': ['cull-idle-servers', '--timeout=%s' % idle_timeout],
+        }
+    ]

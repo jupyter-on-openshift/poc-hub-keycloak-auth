@@ -25,6 +25,10 @@
                     "required": true
                 },
                 {
+                    "name": "JUPYTERHUB_IDLE_TIMEOUT",
+                    "value": "900"
+                },
+                {
                     "name": "OAUTH_SERVICE_TYPE",
                     "value": "",
                     "required": false
@@ -294,6 +298,10 @@
                                             {
                                                 "name": "JUPYTERHUB_NOTEBOOK_IMAGE",
                                                 "value": "${APPLICATION_NAME}-nb-img:latest"
+                                            },
+                                            {
+                                                "name": "JUPYTERHUB_IDLE_TIMEOUT",
+                                                "value": "${JUPYTERHUB_IDLE_TIMEOUT}"
                                             },
                                             {
                                                 "name": "JUPYTERHUB_DATABASE_PASSWORD",
