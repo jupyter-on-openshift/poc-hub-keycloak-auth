@@ -2,6 +2,8 @@ import os
 import string
 import escapism
 
+# Optionally enable user authentication for selected OAuth providers.
+
 if os.environ.get('OAUTH_SERVICE_TYPE') == 'GitHub':
     from oauthenticator.github import GitHubOAuthenticator
     c.JupyterHub.authenticator_class = GitHubOAuthenticator
@@ -10,15 +12,26 @@ c.MyOAuthenticator.oauth_callback_url = os.environ.get('OAUTH_CALLBACK_URL' )
 c.MyOAuthenticator.client_id = os.environ.get('OAUTH_CLIENT_ID')
 c.MyOAuthenticator.client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
 
-c.KubeSpawner.environment = {
-    "NOTEBOOK_ARGS": "--NotebookApp.default_url=/tree/workspace"
-}
+# Provide persistent storage for users notebooks. We share one
+# persistent volume for all users, mounting just their subdirectory into
+# their pod. The persistent volume type needs to be ReadWriteMany so it
+# can be mounted on multiple nodes as can't control where pods for a
+# user may land. Because it is a shared volume, there are no quota
+# restrictions which prevent a specific user filling up the entire
+# persistent volume.
+#
+# As we need to populate the persistent volume with notebooks from the
+# image in an init container, and the command needs to vary based on
+# the user, we add the volume mount and init container details using
+# the modify_pod_hook.
 
 c.KubeSpawner.user_storage_pvc_ensure = True
 
 c.KubeSpawner.pvc_name_template = '%s-notebooks' % c.KubeSpawner.hub_connect_ip
 
 c.KubeSpawner.user_storage_capacity = '1Gi'
+
+c.KubeSpawner.user_storage_access_modes = ['ReadWriteMany']
 
 c.KubeSpawner.volumes = [
     {
@@ -88,6 +101,17 @@ def modify_pod_hook(spawner, pod):
     return pod
 
 c.KubeSpawner.modify_pod_hook = modify_pod_hook
+
+# Startup the notebook in the subdirectory of the users area of the
+# persistent volume. This is so that the user can traverse up a
+# directory and remove or rename the directory and have it recreated
+# with a fresh copf of the notebook the next time the pod is started.
+
+c.KubeSpawner.environment = {
+    "NOTEBOOK_ARGS": "--NotebookApp.default_url=/tree/workspace"
+}
+
+# Setup culling of idle notebooks if timeout parameter is supplied.
 
 idle_timeout = os.environ.get('JUPYTERHUB_IDLE_TIMEOUT')
 
