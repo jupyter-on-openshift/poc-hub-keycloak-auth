@@ -8,6 +8,10 @@ if os.environ.get('OAUTH_SERVICE_TYPE') == 'GitHub':
     from oauthenticator.github import GitHubOAuthenticator
     c.JupyterHub.authenticator_class = GitHubOAuthenticator
 
+else if os.environ.get('OAUTH_SERVICE_TYPE') == 'GitLab':
+    from oauthenticator.gitlab import GitLabOAuthenticator
+    c.JupyterHub.authenticator_class = GitLabOAuthenticator
+
 c.MyOAuthenticator.oauth_callback_url = os.environ.get('OAUTH_CALLBACK_URL' )
 c.MyOAuthenticator.client_id = os.environ.get('OAUTH_CLIENT_ID')
 c.MyOAuthenticator.client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
