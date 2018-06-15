@@ -109,9 +109,9 @@ def expand_strings(spawner, src):
         return src
 
 def modify_pod_hook(spawner, pod):
-    if spawner.admin_access:
+    if spawner.user.name in c.Authenticator.admin_users:
         volume_mounts = volume_mounts_admin
-        workspace = '%s/workspace' % spawner.user.name
+        workspace = interpolate_properties(spawner, '{username}/workspace')
     else:
         volume_mounts = volume_mounts_user
         workspace = 'workspace'
