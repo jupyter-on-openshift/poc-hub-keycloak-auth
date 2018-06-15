@@ -27,7 +27,10 @@ c.MyOAuthenticator.client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
 # As we need to populate the persistent volume with notebooks from the
 # image in an init container, and the command needs to vary based on
 # the user, we add the volume mount and init container details using
-# the modify_pod_hook.
+# the modify_pod_hook. We also need to specify the default_url where
+# the browser should start so can land in a subdirectory. For an admin
+# user this needs to take into account for fact will be able to see all
+# users notebooks.
 
 c.KubeSpawner.user_storage_pvc_ensure = True
 
@@ -46,11 +49,19 @@ c.KubeSpawner.volumes = [
     }
 ]
 
-volume_mounts = [
+volume_mounts_user = [
     {
         'name': 'notebooks',
         'mountPath': '/opt/app-root/src',
         'subPath': 'notebooks/{username}'
+    }
+]
+
+volume_mounts_admin = [
+    {
+        'name': 'notebooks',
+        'mountPath': '/opt/app-root/src',
+        'subPath': 'notebooks'
     }
 ]
 
@@ -98,22 +109,25 @@ def expand_strings(spawner, src):
         return src
 
 def modify_pod_hook(spawner, pod):
+    if spawner.admin_access:
+        volume_mounts = volume_mounts_admin
+        workspace = '%s/workspace' % spawner.user.name
+    else:
+        volume_mounts = volume_mounts_user
+        workspace = 'workspace'
+
+    pod.spec.containers[0].env['NOTEBOOK_ARGS'] = (
+            "--NotebookApp.default_url=/tree/%s" % workspace)
+
     pod.spec.containers[0].volume_mounts.extend(
             expand_strings(spawner, volume_mounts))
+
     pod.spec.init_containers.extend(
             expand_strings(spawner, init_containers))
+
     return pod
 
 c.KubeSpawner.modify_pod_hook = modify_pod_hook
-
-# Startup the notebook in the subdirectory of the users area of the
-# persistent volume. This is so that the user can traverse up a
-# directory and remove or rename the directory and have it recreated
-# with a fresh copf of the notebook the next time the pod is started.
-
-c.KubeSpawner.environment = {
-    "NOTEBOOK_ARGS": "--NotebookApp.default_url=/tree/workspace"
-}
 
 # Setup culling of idle notebooks if timeout parameter is supplied.
 
