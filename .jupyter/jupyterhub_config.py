@@ -8,7 +8,7 @@ if os.environ.get('OAUTH_SERVICE_TYPE') == 'GitHub':
     from oauthenticator.github import GitHubOAuthenticator
     c.JupyterHub.authenticator_class = GitHubOAuthenticator
 
-else if os.environ.get('OAUTH_SERVICE_TYPE') == 'GitLab':
+elif os.environ.get('OAUTH_SERVICE_TYPE') == 'GitLab':
     from oauthenticator.gitlab import GitLabOAuthenticator
     c.JupyterHub.authenticator_class = GitLabOAuthenticator
 
