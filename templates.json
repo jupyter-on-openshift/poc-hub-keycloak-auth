@@ -6,9 +6,9 @@
             "kind": "Template",
             "apiVersion": "v1",
             "metadata": {
-                "name": "poc-hub-shared-storage-1",
+                "name": "jupyterhub",
                 "annotations": {
-                    "openshift.io/display-name": "Hub Shared Storage POC#1",
+                    "openshift.io/display-name": "JupyterHub",
                     "iconClass": "icon-python",
                     "tags": "python,jupyter"
                 }
@@ -16,17 +16,17 @@
             "parameters": [
                 {
                     "name": "APPLICATION_NAME",
-                    "value": "poc-hub-shared-storage-1",
+                    "value": "jupyterhub",
                     "required": true
                 },
                 {
-                    "name": "NOTEBOOK_MEMORY",
-                    "value": "512Mi",
+                    "name": "NOTEBOOK_REPOSITORY_URL",
+                    "value": "",
                     "required": true
                 },
                 {
-                    "name": "JUPYTERHUB_IDLE_TIMEOUT",
-                    "value": "900"
+                    "name": "NOTEBOOK_REPOSITORY_CONTEXT_DIR",
+                    "value": ""
                 },
                 {
                     "name": "OAUTH_SERVICE_TYPE",
@@ -49,9 +49,52 @@
                     "required": false
                 },
                 {
+                    "name": "JUPYTERHUB_ADMIN_USERS",
+                    "value": "",
+                    "required": false
+                },
+                {
+                    "name": "JUPYTERHUB_ENROLLED_USERS",
+                    "value": "",
+                    "required": false
+                },
+                {
+                    "name": "JUPYTERHUB_IDLE_TIMEOUT",
+                    "value": "3600"
+                },
+                {
+                    "name": "JUPYTERHUB_ENABLE_LAB",
+                    "value": "false"
+                },
+                {
+                    "name": "POSTGRESQL_VOLUME_SIZE",
+                    "value": "512Mi",
+                    "required": true
+                },
+                {
+                    "name": "NOTEBOOK_VOLUME_SIZE",
+                    "value": "25Gi",
+                    "required": true
+                },
+                {
+                    "name": "NOTEBOOK_MEMORY",
+                    "value": "512Mi",
+                    "required": true
+                },
+                {
                     "name": "JUPYTERHUB_CONFIG",
                     "value": "",
                     "required": false
+                },
+                {
+                    "name": "PYTHON_IMAGE_NAME",
+                    "value": "python:3.5",
+                    "required": true
+                },
+                {
+                    "name": "POSTGRESQL_IMAGE_NAME",
+                    "value": "postgresql:9.5",
+                    "required": true
                 },
                 {
                     "name": "DATABASE_PASSWORD",
@@ -77,7 +120,9 @@
                         }
                     },
                     "data": {
-                        "jupyterhub_config.py": "${JUPYTERHUB_CONFIG}"
+                        "jupyterhub_config.py": "${JUPYTERHUB_CONFIG}",
+                        "admin_users.txt": "${JUPYTERHUB_ADMIN_USERS}",
+                        "user_whitelist.txt": "${JUPYTERHUB_ENROLLED_USERS}"
                     }
                 },
                 {
@@ -148,7 +193,7 @@
                             "sourceStrategy": {
                                 "from": {
                                     "kind": "ImageStreamTag",
-                                    "name": "python:3.5",
+                                    "name": "${PYTHON_IMAGE_NAME}",
                                     "namespace": "openshift"
                                 }
                             }
@@ -193,7 +238,8 @@
                             "type": "Git",
                             "git": {
                                 "uri": "https://github.com/jupyter-on-openshift/poc-hub-shared-storage-1.git"
-                            }
+                            },
+                            "contextDir": "jupyterhub"
                         },
                         "strategy": {
                             "type": "Source",
@@ -218,6 +264,39 @@
                     }
                 },
                 {
+                    "apiVersion": "v1",
+                    "kind": "PersistentVolumeClaim",
+                    "metadata": {
+                        "name": "${APPLICATION_NAME}-notebooks",
+                        "labels": {
+                            "app": "${APPLICATION_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "accessModes": [
+                            "ReadWriteMany"
+                        ],
+                        "resources": {
+                            "requests": {
+                                "storage": "${NOTEBOOK_VOLUME_SIZE}"
+                            }
+                        }
+                    }
+                },
+                {
+                    "apiVersion": "v1",
+                    "kind": "Secret",
+                    "metadata": {
+                        "name": "${APPLICATION_NAME}-pgsql",
+                        "labels": {
+                            "app": "${APPLICATION_NAME}"
+                        }
+                    },
+                    "stringData": {
+			"password": "${DATABASE_PASSWORD}"
+                    }
+                },
+	        {
                     "kind": "DeploymentConfig",
                     "apiVersion": "v1",
                     "metadata": {
@@ -271,7 +350,12 @@
                                         "env": [
                                             {
                                                 "name": "JUPYTERHUB_DATABASE_PASSWORD",
-                                                "value": "${DATABASE_PASSWORD}"
+                                                "valueFrom": {
+                                                    "secretKeyRef": {
+                                                        "name": "${APPLICATION_NAME}-pgsql",
+                                                        "key": "password"
+                                                    }
+                                                }
                                             },
                                             {
                                                 "name": "JUPYTERHUB_DATABASE_HOST",
@@ -304,8 +388,17 @@
                                                 "value": "${JUPYTERHUB_IDLE_TIMEOUT}"
                                             },
                                             {
+                                                "name": "JUPYTERHUB_ENABLE_LAB",
+                                                "value": "${JUPYTERHUB_ENABLE_LAB}"
+                                            },
+                                            {
                                                 "name": "JUPYTERHUB_DATABASE_PASSWORD",
-                                                "value": "${DATABASE_PASSWORD}"
+                                                "valueFrom": {
+                                                    "secretKeyRef": {
+                                                        "name": "${APPLICATION_NAME}-pgsql",
+                                                        "key": "password"
+                                                    }
+                                                }
                                             },
                                             {
                                                 "name": "JUPYTERHUB_DATABASE_HOST",
@@ -314,28 +407,16 @@
                                             {
                                                 "name": "JUPYTERHUB_COOKIE_SECRET",
                                                 "value": "${COOKIE_SECRET}"
-                                            },
-                                            {
-                                                "name": "OAUTH_SERVICE_TYPE",
-                                                "value": "${OAUTH_SERVICE_TYPE}"
-                                            },
-                                            {
-                                                "name": "OAUTH_CALLBACK_URL",
-                                                "value": "${OAUTH_CALLBACK_URL}"
-                                            },
-                                            {
-                                                "name": "OAUTH_CLIENT_ID",
-                                                "value": "${OAUTH_CLIENT_ID}"
-                                            },
-                                            {
-                                                "name": "OAUTH_CLIENT_SECRET",
-                                                "value": "${OAUTH_CLIENT_SECRET}"
                                             }
                                         ],
                                         "volumeMounts": [
                                             {
                                                 "name": "config",
                                                 "mountPath": "/opt/app-root/configs"
+                                            },
+                                            {
+                                                "name": "notebooks",
+                                                "mountPath": "/opt/app-root/notebooks"
                                             }
                                         ]
                                     }
@@ -346,6 +427,12 @@
                                         "configMap": {
                                             "name": "${APPLICATION_NAME}-cfg",
                                             "defaultMode": 420
+                                        }
+                                    },
+                                    {
+                                        "name": "notebooks",
+                                        "persistentVolumeClaim": {
+                                            "claimName": "${APPLICATION_NAME}-notebooks"
                                         }
                                     }
                                 ]
@@ -423,7 +510,7 @@
                         ],
                         "resources": {
                             "requests": {
-                                "storage": "1Gi"
+                                "storage": "${POSTGRESQL_VOLUME_SIZE}"
                             }
                         }
                     }
@@ -464,7 +551,12 @@
                                             },
                                             {
                                                 "name": "POSTGRESQL_PASSWORD",
-                                                "value": "${DATABASE_PASSWORD}"
+                                                "valueFrom": {
+                                                    "secretKeyRef": {
+                                                        "name": "${APPLICATION_NAME}-pgsql",
+                                                        "key": "password"
+                                                    }
+                                                }
                                             },
                                             {
                                                 "name": "POSTGRESQL_DATABASE",
@@ -526,7 +618,7 @@
                                     ],
                                     "from": {
                                         "kind": "ImageStreamTag",
-                                        "name": "postgresql:9.5",
+                                        "name": "${POSTGRESQL_IMAGE_NAME}",
                                         "namespace": "openshift"
                                     }
                                 },
@@ -566,6 +658,117 @@
                     "kind": "ImageStream",
                     "apiVersion": "v1",
                     "metadata": {
+                        "name": "${APPLICATION_NAME}-nb-s2i",
+                        "labels": {
+                            "app": "${APPLICATION_NAME}"
+                        }
+                    }
+                },
+                {
+                    "kind": "BuildConfig",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${APPLICATION_NAME}-nb-s2i",
+                        "labels": {
+                            "app": "${APPLICATION_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "triggers": [
+                            {
+                                "type": "ConfigChange"
+                            },
+                            {
+                                "type": "ImageChange"
+                            }
+                        ],
+                        "source": {
+                            "type": "Git",
+                            "git": {
+                                "uri": "https://github.com/jupyter-on-openshift/jupyter-notebooks.git"
+                            },
+                            "contextDir": "minimal-notebook"
+                        },
+                        "strategy": {
+                            "type": "Source",
+                            "sourceStrategy": {
+                                "from": {
+                                    "kind": "ImageStreamTag",
+                                    "name": "${PYTHON_IMAGE_NAME}",
+                                    "namespace": "openshift"
+                                },
+				"env": [
+				    {
+					"name": "JUPYTER_INSTALL_LAB",
+					"value": "true"
+				    }
+				]
+                            }
+                        },
+                        "output": {
+                            "to": {
+                                "kind": "ImageStreamTag",
+                                "name": "${APPLICATION_NAME}-nb-s2i:latest"
+                            }
+                        }
+                    }
+                },
+                {
+                    "kind": "ImageStream",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${APPLICATION_NAME}-nb-bld",
+                        "labels": {
+                            "app": "${APPLICATION_NAME}"
+                        }
+                    }
+                },
+                {
+                    "kind": "BuildConfig",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${APPLICATION_NAME}-nb-bld",
+                        "labels": {
+                            "app": "${APPLICATION_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "triggers": [
+                            {
+                                "type": "ConfigChange"
+                            },
+                            {
+                                "type": "ImageChange"
+                            }
+                        ],
+                        "source": {
+                            "type": "Git",
+                            "git": {
+                                "uri": "https://github.com/jupyter-on-openshift/poc-hub-shared-storage-1.git"
+                            },
+                            "contextDir": "notebook"
+                        },
+                        "strategy": {
+                            "type": "Docker",
+                            "dockerStrategy": {
+                                "from": {
+                                    "kind": "ImageStreamTag",
+                                    "name": "${APPLICATION_NAME}-nb-s2i:latest"
+                                }
+                            }
+                        },
+                        "output": {
+                            "to": {
+                                "kind": "ImageStreamTag",
+                                "name": "${APPLICATION_NAME}-nb-bld:latest"
+                            }
+                        }
+                    }
+                },
+                {
+                    "kind": "ImageStream",
+                    "apiVersion": "v1",
+                    "metadata": {
                         "name": "${APPLICATION_NAME}-nb-img",
                         "labels": {
                             "app": "${APPLICATION_NAME}"
@@ -593,18 +796,23 @@
                         "source": {
                             "type": "Git",
                             "git": {
-                                "uri": "https://github.com/jupyter-on-openshift/jupyter-notebooks.git"
+                                "uri": "${NOTEBOOK_REPOSITORY_URL}"
                             },
-                            "contextDir": "minimal-notebook"
+                            "contextDir": "${NOTEBOOK_REPOSITORY_CONTEXT_DIR}"
                         },
                         "strategy": {
                             "type": "Source",
                             "sourceStrategy": {
                                 "from": {
                                     "kind": "ImageStreamTag",
-                                    "name": "python:3.5",
-                                    "namespace": "openshift"
-                                }
+                                    "name": "${APPLICATION_NAME}-nb-bld:latest"
+                                },
+                                "env": [
+                                    {
+                                        "name": "JUPYTER_MASTER_FILES",
+                                        "value": "/opt/app-root/master"
+                                    }
+                                ]
                             }
                         },
                         "output": {

@@ -2,6 +2,11 @@ import os
 import string
 import escapism
 
+# Enable JupyterLab interface if enabled.
+
+if os.environ.get('JUPYTERHUB_ENABLE_LAB', 'false').lower() in ['true', 'yes', 'y', '1']:
+    c.Spawner.environment = dict(JUPYTER_ENABLE_LAB='true')
+
 # Optionally enable user authentication for selected OAuth providers.
 
 if os.environ.get('OAUTH_SERVICE_TYPE') == 'GitHub':
@@ -16,6 +21,20 @@ c.MyOAuthenticator.oauth_callback_url = os.environ.get('OAUTH_CALLBACK_URL' )
 c.MyOAuthenticator.client_id = os.environ.get('OAUTH_CLIENT_ID')
 c.MyOAuthenticator.client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
 
+# Populate admin users and use white list from config maps.
+
+if os.path.exists('/opt/app-root/configs/admin_users.txt'):
+    with open('/opt/app-root/configs/admin_users.txt') as fp:
+        content = fp.read().strip()
+        if content:
+            c.Authenticator.admin_users = set(content.split())
+
+if os.path.exists('/opt/app-root/configs/user_whitelist.txt'):
+    with open('/opt/app-root/configs/user_whitelist.txt') as fp:
+        content = fp.read().strip()
+        if content:
+            c.Authenticator.whitelist = set(content.split())
+
 # Provide persistent storage for users notebooks. We share one
 # persistent volume for all users, mounting just their subdirectory into
 # their pod. The persistent volume type needs to be ReadWriteMany so it
@@ -23,22 +42,9 @@ c.MyOAuthenticator.client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
 # user may land. Because it is a shared volume, there are no quota
 # restrictions which prevent a specific user filling up the entire
 # persistent volume.
-#
-# As we need to populate the persistent volume with notebooks from the
-# image in an init container, and the command needs to vary based on
-# the user, we add the volume mount and init container details using
-# the modify_pod_hook. We also need to specify the default_url where
-# the browser should start so can land in a subdirectory. For an admin
-# user this needs to take into account for fact will be able to see all
-# users notebooks.
 
-c.KubeSpawner.user_storage_pvc_ensure = True
-
+c.KubeSpawner.user_storage_pvc_ensure = False
 c.KubeSpawner.pvc_name_template = '%s-notebooks' % c.KubeSpawner.hub_connect_ip
-
-c.KubeSpawner.user_storage_capacity = '1Gi'
-
-c.KubeSpawner.user_storage_access_modes = ['ReadWriteMany']
 
 c.KubeSpawner.volumes = [
     {
@@ -53,38 +59,14 @@ volume_mounts_user = [
     {
         'name': 'notebooks',
         'mountPath': '/opt/app-root/src',
-        'subPath': 'notebooks/{username}'
+        'subPath': '{username}'
     }
 ]
 
 volume_mounts_admin = [
     {
         'name': 'notebooks',
-        'mountPath': '/opt/app-root/src',
-        'subPath': 'notebooks'
-    }
-]
-
-init_containers = [
-    {
-        'name': 'setup-volume',
-        'image': os.environ['JUPYTERHUB_NOTEBOOK_IMAGE'],
-        'command': [
-            'setup-volume.sh',
-            '/opt/app-root/src',
-            '/mnt/notebooks/{username}/workspace'
-        ],
-        'resources': {
-            'limits': {
-                'memory': '256Mi'
-            }
-        },
-        'volumeMounts': [
-            {
-                'name': 'notebooks',
-                'mountPath': '/mnt'
-            }
-        ]
+        'mountPath': '/opt/app-root/src/users'
     }
 ]
 
@@ -109,21 +91,26 @@ def expand_strings(spawner, src):
         return src
 
 def modify_pod_hook(spawner, pod):
-    if spawner.user.name in spawner.user.authenticator.admin_users:
+    if spawner.user.admin:
         volume_mounts = volume_mounts_admin
-        workspace = interpolate_properties(spawner, '{username}/workspace')
+        workspace = interpolate_properties(spawner, 'users/{username}/workspace')
     else:
         volume_mounts = volume_mounts_user
         workspace = 'workspace'
 
-    pod.spec.containers[0].env.append(dict(name='NOTEBOOK_ARGS',
-            value="--NotebookApp.default_url=/tree/%s" % workspace))
+    try:
+        os.mkdir(interpolate_properties(spawner, '/opt/app-root/notebooks/{username}'))
+
+    except IOError:
+        pass
+
+    pod.spec.containers[0].env.append(dict(name='JUPYTER_MASTER_FILES',
+            value='/opt/app-root/master'))
+    pod.spec.containers[0].env.append(dict(name='JUPYTER_WORKSPACE_NAME',
+            value=workspace))
 
     pod.spec.containers[0].volume_mounts.extend(
             expand_strings(spawner, volume_mounts))
-
-    pod.spec.init_containers.extend(
-            expand_strings(spawner, init_containers))
 
     return pod
 
