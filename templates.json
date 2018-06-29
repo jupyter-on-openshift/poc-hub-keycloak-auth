@@ -717,58 +717,6 @@
                     "kind": "ImageStream",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-nb-bld",
-                        "labels": {
-                            "app": "${APPLICATION_NAME}"
-                        }
-                    }
-                },
-                {
-                    "kind": "BuildConfig",
-                    "apiVersion": "v1",
-                    "metadata": {
-                        "name": "${APPLICATION_NAME}-nb-bld",
-                        "labels": {
-                            "app": "${APPLICATION_NAME}"
-                        }
-                    },
-                    "spec": {
-                        "triggers": [
-                            {
-                                "type": "ConfigChange"
-                            },
-                            {
-                                "type": "ImageChange"
-                            }
-                        ],
-                        "source": {
-                            "type": "Git",
-                            "git": {
-                                "uri": "https://github.com/jupyter-on-openshift/poc-hub-shared-storage-1.git"
-                            },
-                            "contextDir": "notebook"
-                        },
-                        "strategy": {
-                            "type": "Docker",
-                            "dockerStrategy": {
-                                "from": {
-                                    "kind": "ImageStreamTag",
-                                    "name": "${APPLICATION_NAME}-nb-s2i:latest"
-                                }
-                            }
-                        },
-                        "output": {
-                            "to": {
-                                "kind": "ImageStreamTag",
-                                "name": "${APPLICATION_NAME}-nb-bld:latest"
-                            }
-                        }
-                    }
-                },
-                {
-                    "kind": "ImageStream",
-                    "apiVersion": "v1",
-                    "metadata": {
                         "name": "${APPLICATION_NAME}-nb-img",
                         "labels": {
                             "app": "${APPLICATION_NAME}"
@@ -805,7 +753,7 @@
                             "sourceStrategy": {
                                 "from": {
                                     "kind": "ImageStreamTag",
-                                    "name": "${APPLICATION_NAME}-nb-bld:latest"
+                                    "name": "${APPLICATION_NAME}-nb-s2i:latest"
                                 },
                                 "env": [
                                     {
