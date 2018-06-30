@@ -41,7 +41,7 @@ keycloak_realm = os.environ.get('KEYCLOAK_REALM')
 keycloak_account_url = 'https://%s/auth/realms/jupyterhub/account' % keycloak_hostname
 
 with open('templates/vars.html', 'w') as fp:
-    fp.write('{% set keycloak_account_url = "%s" %}' % keycloak_account_url)
+    fp.write('{%% set keycloak_account_url = "%s" %%}' % keycloak_account_url)
 
 os.environ['OAUTH2_TOKEN_URL'] = 'https://%s/auth/realms/%s/protocol/openid-connect/token' % (keycloak_hostname, keycloak_realm)
 os.environ['OAUTH2_AUTHORIZE_URL'] = 'https://%s/auth/realms/%s/protocol/openid-connect/auth' % (keycloak_hostname, keycloak_realm)
