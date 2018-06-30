@@ -34,16 +34,6 @@
                     "value": ""
                 },
                 {
-                    "name": "OAUTH_CLIENT_ID",
-                    "value": "",
-                    "required": false
-                },
-                {
-                    "name": "OAUTH_CLIENT_SECRET",
-                    "value": "",
-                    "required": false
-                },
-                {
                     "name": "JUPYTERHUB_ADMIN_USERS",
                     "value": "",
                     "required": false
@@ -106,6 +96,12 @@
                 },
                 {
                     "name": "COOKIE_SECRET",
+                    "generate": "expression",
+                    "from": "[a-f0-9]{32}",
+                    "required": true
+                },
+                {
+                    "name": "OAUTH_CLIENT_SECRET",
                     "generate": "expression",
                     "from": "[a-f0-9]{32}",
                     "required": true
@@ -393,7 +389,7 @@
                                             },
                                             {
                                                 "name": "OAUTH_CLIENT_ID",
-                                                "value": "${OAUTH_CLIENT_ID}"
+                                                "value": "jupyterhub"
                                             },
                                             {
                                                 "name": "OAUTH_CLIENT_SECRET",
@@ -876,6 +872,7 @@
                         }
                     },
                     "spec": {
+                        "serviceAccountName": "${JUPYTERHUB_NAME}-hub",
                         "strategy": {
                             "type": "Recreate"
                         },
@@ -921,6 +918,14 @@
                                             }
                                         ],
                                         "env": [
+                                            {
+                                                "name": "JUPYTERHUB_SERVICE_NAME",
+                                                "value": "${JUPYTERHUB_NAME}"
+                                            },
+                                            {
+                                                "name": "OAUTH_CLIENT_SECRET",
+                                                "value": "${OAUTH_CLIENT_SECRET}"
+                                            },
                                             {
                                                 "name": "KEYCLOAK_USER",
                                                 "value": "${KEYCLOAK_USER}"
