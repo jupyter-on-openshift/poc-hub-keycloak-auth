@@ -1,0 +1,31 @@
+{% extends "vars.html" %}
+
+{% extends "page.html" %}
+
+{% block main %}
+
+<div class="container">
+  <div class="row">
+    <div class="text-center">
+      {% if user.running %}
+      <a id="stop" role="button" class="btn btn-lg btn-danger">Stop My Server</a>
+      {% endif %}
+      <a id="start"role="button" class="btn btn-lg btn-primary" href="{{ url }}">
+      {% if not user.running %}
+      Start
+      {% endif %}
+        My Server
+      </a>
+      <a id="account"role="button" class="btn btn-lg btn-primary" href="{{ keycloak_account_url }}" target="_blank">My Account</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+{{ super() }}
+<script type="text/javascript">
+require(["home"]);
+</script>
+{% endblock %}

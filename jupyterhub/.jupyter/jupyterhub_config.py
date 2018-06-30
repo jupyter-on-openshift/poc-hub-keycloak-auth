@@ -7,6 +7,10 @@ import escapism
 if os.environ.get('JUPYTERHUB_ENABLE_LAB', 'false').lower() in ['true', 'yes', 'y', '1']:
     c.Spawner.environment = dict(JUPYTER_ENABLE_LAB='true')
 
+# Setup location for customised template files.
+
+c.JupyterHub.template_paths = ['/opt/app-root/src/templates']
+
 # Optionally enable user authentication for selected OAuth providers.
 
 from openshift import client, config
@@ -33,6 +37,11 @@ keycloak_hostname = extract_hostname(routes, keycloak_name)
 print('keycloak_hostname', keycloak_hostname)
 
 keycloak_realm = os.environ.get('KEYCLOAK_REALM')
+
+keycloak_account_url = 'https://%s/auth/realms/jupyterhub/account' % keycloak_hostname
+
+with open('templates/vars.html', 'w') as fp:
+    fp.write('{% set keycloak_account_url = "%s" %}' % keycloak_account_url)
 
 os.environ['OAUTH2_TOKEN_URL'] = 'https://%s/auth/realms/%s/protocol/openid-connect/token' % (keycloak_hostname, keycloak_realm)
 os.environ['OAUTH2_AUTHORIZE_URL'] = 'https://%s/auth/realms/%s/protocol/openid-connect/auth' % (keycloak_hostname, keycloak_realm)
