@@ -9,17 +9,50 @@ if os.environ.get('JUPYTERHUB_ENABLE_LAB', 'false').lower() in ['true', 'yes', '
 
 # Optionally enable user authentication for selected OAuth providers.
 
-if os.environ.get('OAUTH_SERVICE_TYPE') == 'GitHub':
-    from oauthenticator.github import GitHubOAuthenticator
-    c.JupyterHub.authenticator_class = GitHubOAuthenticator
+from openshift import client, config
 
-elif os.environ.get('OAUTH_SERVICE_TYPE') == 'GitLab':
-    from oauthenticator.gitlab import GitLabOAuthenticator
-    c.JupyterHub.authenticator_class = GitLabOAuthenticator
+with open('/var/run/secrets/kubernetes.io/serviceaccount/namespace') as fp:
+    namespace = fp.read().strip()
 
-c.MyOAuthenticator.oauth_callback_url = os.environ.get('OAUTH_CALLBACK_URL' )
-c.MyOAuthenticator.client_id = os.environ.get('OAUTH_CLIENT_ID')
-c.MyOAuthenticator.client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
+config.load_incluster_config()
+oapi = client.OapiApi()
+
+routes = oapi.list_namespaced_route(namespace)
+
+def extract_hostname(routes, name):
+    for route in routes:
+        if route['metadata']['name'] == name:
+            return route['spec']['host']
+
+jupyterhub_name = os.environ.get('JUPYTERHUB_SERVICE_NAME')
+jupyterhub_hostname = extract_hostname(routes, jupyterhub_name)
+print('jupyterhub_hostname', jupyterhub_hostname)
+
+keycloak_name = os.environ.get('KEYCLOAK_SERVICE_NAME')
+keycloak_hostname = extract_hostname(routes, keycloak_name)
+print('keycloak_hostname', keycloak_hostname)
+
+keycloak_realm = os.environ.get('KEYCLOAK_REALM')
+
+os.environ['OAUTH2_TOKEN_URL'] = 'https://%s/auth/realms/%s/protocol/openid-connect/token' % (keycloak_hostname, keycloak_realm)
+os.environ['OAUTH2_AUTHORIZE_URL'] = 'https://%s/auth/realms/%s/protocol/openid-connect/auth' % (keycloak_hostname, keycloak_realm)
+os.environ['OAUTH2_USERDATA_URL'] = 'https://%s/auth/realms/%s/protocol/openid-connect/userinfo' % (keycloak_hostname, keycloak_realm)
+
+os.environ['OAUTH2_TLS_VERIFY'] = '0'
+os.environ['OAUTH_TLS_VERIFY'] = '0'
+
+os.environ['OAUTH2_USERDATA_METHOD'] = 'POST'
+os.environ['OAUTH2_USERNAME_KEY'] = 'preferred_username'
+
+from oauthenticator.generic import GenericOAuthenticator
+c.JupyterHub.authenticator_class = GenericOAuthenticator
+
+c.OAuthenticator.oauth_callback_url = 'https://%s/hub/oauth_callback' % jupyterhub_hostname
+
+c.OAuthenticator.client_id = os.environ.get('OAUTH_CLIENT_ID')
+c.OAuthenticator.client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
+
+c.OAuthenticator.tls_verify = False
 
 # Populate admin users and use white list from config maps.
 

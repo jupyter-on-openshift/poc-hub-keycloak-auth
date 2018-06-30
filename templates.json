@@ -15,8 +15,13 @@
             },
             "parameters": [
                 {
-                    "name": "APPLICATION_NAME",
+                    "name": "JUPYTERHUB_NAME",
                     "value": "jupyterhub",
+                    "required": true
+                },
+                {
+                    "name": "KEYCLOAK_NAME",
+                    "value": "keycloak",
                     "required": true
                 },
                 {
@@ -72,6 +77,11 @@
                     "required": true
                 },
                 {
+                    "name": "KEYCLOAK_VOLUME_SIZE",
+                    "value": "512Mi",
+                    "required": true
+                },
+                {
                     "name": "NOTEBOOK_VOLUME_SIZE",
                     "value": "25Gi",
                     "required": true
@@ -86,16 +96,18 @@
                     "value": "",
                     "required": false
                 },
-                {
-                    "name": "PYTHON_IMAGE_NAME",
-                    "value": "python:3.6",
-                    "required": true
-                },
-                {
-                    "name": "POSTGRESQL_IMAGE_NAME",
-                    "value": "postgresql:9.6",
-                    "required": true
-                },
+		{
+		    "name": "KEYCLOAK_USER",
+		    "generate": "expression",
+		    "from": "[a-zA-Z0-9]{8}",
+		    "required": true
+		},
+		{
+		    "name": "KEYCLOAK_PASSWORD",
+		    "generate": "expression",
+		    "from": "[a-zA-Z0-9]{16}",
+		    "required": true
+		},
                 {
                     "name": "DATABASE_PASSWORD",
                     "generate": "expression",
@@ -114,9 +126,9 @@
                     "kind": "ConfigMap",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-cfg",
+                        "name": "${JUPYTERHUB_NAME}-cfg",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "data": {
@@ -129,9 +141,9 @@
                     "kind": "ServiceAccount",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-hub",
+                        "name": "${JUPYTERHUB_NAME}-hub",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     }
                 },
@@ -139,15 +151,15 @@
                     "kind": "RoleBinding",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-edit",
+                        "name": "${JUPYTERHUB_NAME}-edit",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "subjects": [
                         {
                             "kind": "ServiceAccount",
-                            "name": "${APPLICATION_NAME}-hub"
+                            "name": "${JUPYTERHUB_NAME}-hub"
                         }
                     ],
                     "roleRef": {
@@ -158,9 +170,9 @@
                     "kind": "ImageStream",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-hub-s2i",
+                        "name": "${JUPYTERHUB_NAME}-hub-s2i",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     }
                 },
@@ -168,9 +180,9 @@
                     "kind": "BuildConfig",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-hub-s2i",
+                        "name": "${JUPYTERHUB_NAME}-hub-s2i",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
@@ -193,7 +205,7 @@
                             "sourceStrategy": {
                                 "from": {
                                     "kind": "ImageStreamTag",
-                                    "name": "${PYTHON_IMAGE_NAME}",
+                                    "name": "python:3.6",
                                     "namespace": "openshift"
                                 }
                             }
@@ -201,7 +213,7 @@
                         "output": {
                             "to": {
                                 "kind": "ImageStreamTag",
-                                "name": "${APPLICATION_NAME}-hub-s2i:latest"
+                                "name": "${JUPYTERHUB_NAME}-hub-s2i:latest"
                             }
                         }
                     }
@@ -210,9 +222,9 @@
                     "kind": "ImageStream",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-hub-img",
+                        "name": "${JUPYTERHUB_NAME}-hub-img",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     }
                 },
@@ -220,9 +232,9 @@
                     "kind": "BuildConfig",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-hub-img",
+                        "name": "${JUPYTERHUB_NAME}-hub-img",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
@@ -246,14 +258,14 @@
                             "sourceStrategy": {
                                 "from": {
                                     "kind": "ImageStreamTag",
-                                    "name": "${APPLICATION_NAME}-hub-s2i:latest"
+                                    "name": "${JUPYTERHUB_NAME}-hub-s2i:latest"
                                 }
                             }
                         },
                         "output": {
                             "to": {
                                 "kind": "ImageStreamTag",
-                                "name": "${APPLICATION_NAME}-hub-img:latest"
+                                "name": "${JUPYTERHUB_NAME}-hub-img:latest"
                             }
                         },
                         "resources": {
@@ -267,9 +279,9 @@
                     "apiVersion": "v1",
                     "kind": "PersistentVolumeClaim",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-notebooks",
+                        "name": "${JUPYTERHUB_NAME}-notebooks",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
@@ -287,9 +299,9 @@
                     "apiVersion": "v1",
                     "kind": "Secret",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-pgsql",
+                        "name": "${JUPYTERHUB_NAME}-pgsql",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "stringData": {
@@ -300,9 +312,9 @@
                     "kind": "DeploymentConfig",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}",
+                        "name": "${JUPYTERHUB_NAME}",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
@@ -323,25 +335,25 @@
                                     ],
                                     "from": {
                                         "kind": "ImageStreamTag",
-                                        "name": "${APPLICATION_NAME}-hub-img:latest"
+                                        "name": "${JUPYTERHUB_NAME}-hub-img:latest"
                                     }
                                 }
                             }
                         ],
                         "replicas": 1,
                         "selector": {
-                            "app": "${APPLICATION_NAME}",
-                            "deploymentconfig": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}",
+                            "deploymentconfig": "${JUPYTERHUB_NAME}"
                         },
                         "template": {
                             "metadata": {
                                 "labels": {
-                                    "app": "${APPLICATION_NAME}",
-                                    "deploymentconfig": "${APPLICATION_NAME}"
+                                    "app": "${JUPYTERHUB_NAME}",
+                                    "deploymentconfig": "${JUPYTERHUB_NAME}"
                                 }
                             },
                             "spec": {
-                                "serviceAccountName": "${APPLICATION_NAME}-hub",
+                                "serviceAccountName": "${JUPYTERHUB_NAME}-hub",
                                 "initContainers": [
                                     {
                                         "name": "wait-for-database",
@@ -352,14 +364,14 @@
                                                 "name": "JUPYTERHUB_DATABASE_PASSWORD",
                                                 "valueFrom": {
                                                     "secretKeyRef": {
-                                                        "name": "${APPLICATION_NAME}-pgsql",
+                                                        "name": "${JUPYTERHUB_NAME}-pgsql",
                                                         "key": "password"
                                                     }
                                                 }
                                             },
                                             {
                                                 "name": "JUPYTERHUB_DATABASE_HOST",
-                                                "value": "${APPLICATION_NAME}-database"
+                                                "value": "${JUPYTERHUB_NAME}-db"
                                             }
                                         ]
                                     }
@@ -377,11 +389,19 @@
                                         "env": [
                                             {
                                                 "name": "JUPYTERHUB_SERVICE_NAME",
-                                                "value": "${APPLICATION_NAME}"
+                                                "value": "${JUPYTERHUB_NAME}"
+                                            },
+                                            {
+                                                "name": "KEYCLOAK_SERVICE_NAME",
+                                                "value": "${KEYCLOAK_NAME}"
+                                            },
+                                            {
+                                                "name": "KEYCLOAK_REALM",
+                                                "value": "jupyterhub"
                                             },
                                             {
                                                 "name": "JUPYTERHUB_NOTEBOOK_IMAGE",
-                                                "value": "${APPLICATION_NAME}-nb-img:latest"
+                                                "value": "${JUPYTERHUB_NAME}-nb-img:latest"
                                             },
                                             {
                                                 "name": "JUPYTERHUB_IDLE_TIMEOUT",
@@ -395,14 +415,14 @@
                                                 "name": "JUPYTERHUB_DATABASE_PASSWORD",
                                                 "valueFrom": {
                                                     "secretKeyRef": {
-                                                        "name": "${APPLICATION_NAME}-pgsql",
+                                                        "name": "${JUPYTERHUB_NAME}-pgsql",
                                                         "key": "password"
                                                     }
                                                 }
                                             },
                                             {
                                                 "name": "JUPYTERHUB_DATABASE_HOST",
-                                                "value": "${APPLICATION_NAME}-database"
+                                                "value": "${JUPYTERHUB_NAME}-db"
                                             },
                                             {
                                                 "name": "JUPYTERHUB_COOKIE_SECRET",
@@ -425,14 +445,14 @@
                                     {
                                         "name": "config",
                                         "configMap": {
-                                            "name": "${APPLICATION_NAME}-cfg",
+                                            "name": "${JUPYTERHUB_NAME}-cfg",
                                             "defaultMode": 420
                                         }
                                     },
                                     {
                                         "name": "notebooks",
                                         "persistentVolumeClaim": {
-                                            "claimName": "${APPLICATION_NAME}-notebooks"
+                                            "claimName": "${JUPYTERHUB_NAME}-notebooks"
                                         }
                                     }
                                 ]
@@ -444,9 +464,9 @@
                     "kind": "Service",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}",
+                        "name": "${JUPYTERHUB_NAME}",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
@@ -465,8 +485,8 @@
                             }
                         ],
                         "selector": {
-                            "app": "${APPLICATION_NAME}",
-                            "deploymentconfig": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}",
+                            "deploymentconfig": "${JUPYTERHUB_NAME}"
                         }
                     }
                 },
@@ -474,16 +494,16 @@
                     "kind": "Route",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}",
+                        "name": "${JUPYTERHUB_NAME}",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
                         "host": "",
                         "to": {
                             "kind": "Service",
-                            "name": "${APPLICATION_NAME}",
+                            "name": "${JUPYTERHUB_NAME}",
                             "weight": 100
                         },
                         "port": {
@@ -495,13 +515,14 @@
                         }
                     }
                 },
+
                 {
                     "kind": "PersistentVolumeClaim",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-database",
+                        "name": "${JUPYTERHUB_NAME}-db",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
@@ -519,16 +540,16 @@
                     "apiVersion": "v1",
                     "kind": "DeploymentConfig",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-database",
+                        "name": "${JUPYTERHUB_NAME}-db",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
                         "replicas": 1,
                         "selector": {
-                            "app": "${APPLICATION_NAME}",
-                            "deploymentconfig": "${APPLICATION_NAME}-database"
+                            "app": "${JUPYTERHUB_NAME}",
+                            "deploymentconfig": "${JUPYTERHUB_NAME}-db"
                         },
                         "strategy": {
                             "type": "Recreate"
@@ -536,8 +557,8 @@
                         "template": {
                             "metadata": {
                                 "labels": {
-                                    "app": "${APPLICATION_NAME}",
-                                    "deploymentconfig": "${APPLICATION_NAME}-database"
+                                    "app": "${JUPYTERHUB_NAME}",
+                                    "deploymentconfig": "${JUPYTERHUB_NAME}-db"
                                 }
                             },
                             "spec": {
@@ -553,7 +574,7 @@
                                                 "name": "POSTGRESQL_PASSWORD",
                                                 "valueFrom": {
                                                     "secretKeyRef": {
-                                                        "name": "${APPLICATION_NAME}-pgsql",
+                                                        "name": "${JUPYTERHUB_NAME}-pgsql",
                                                         "key": "password"
                                                     }
                                                 }
@@ -596,13 +617,13 @@
                                     {
                                         "name": "data",
                                         "persistentVolumeClaim": {
-                                            "claimName": "${APPLICATION_NAME}-database"
+                                            "claimName": "${JUPYTERHUB_NAME}-db"
                                         }
                                     },
                                     {
                                         "name": "config",
                                         "configMap": {
-                                            "name": "${APPLICATION_NAME}-cfg",
+                                            "name": "${JUPYTERHUB_NAME}-cfg",
                                             "defaultMode": 420
                                         }
                                     }
@@ -618,7 +639,7 @@
                                     ],
                                     "from": {
                                         "kind": "ImageStreamTag",
-                                        "name": "${POSTGRESQL_IMAGE_NAME}",
+                                        "name": "postgresql:9.6",
                                         "namespace": "openshift"
                                     }
                                 },
@@ -634,9 +655,9 @@
                     "kind": "Service",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-database",
+                        "name": "${JUPYTERHUB_NAME}-db",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
@@ -649,18 +670,19 @@
                             }
                         ],
                         "selector": {
-                            "app": "${APPLICATION_NAME}",
-                            "deploymentconfig": "${APPLICATION_NAME}-database"
+                            "app": "${JUPYTERHUB_NAME}",
+                            "deploymentconfig": "${JUPYTERHUB_NAME}-db"
                         }
                     }
                 },
+
                 {
                     "kind": "ImageStream",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-nb-s2i",
+                        "name": "${JUPYTERHUB_NAME}-nb-s2i",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     }
                 },
@@ -668,9 +690,9 @@
                     "kind": "BuildConfig",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-nb-s2i",
+                        "name": "${JUPYTERHUB_NAME}-nb-s2i",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
@@ -694,7 +716,7 @@
                             "sourceStrategy": {
                                 "from": {
                                     "kind": "ImageStreamTag",
-                                    "name": "${PYTHON_IMAGE_NAME}",
+                                    "name": "python:3.6",
                                     "namespace": "openshift"
                                 },
 				"env": [
@@ -708,7 +730,7 @@
                         "output": {
                             "to": {
                                 "kind": "ImageStreamTag",
-                                "name": "${APPLICATION_NAME}-nb-s2i:latest"
+                                "name": "${JUPYTERHUB_NAME}-nb-s2i:latest"
                             }
                         }
                     }
@@ -717,9 +739,9 @@
                     "kind": "ImageStream",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-nb-img",
+                        "name": "${JUPYTERHUB_NAME}-nb-img",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     }
                 },
@@ -727,9 +749,9 @@
                     "kind": "BuildConfig",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-nb-img",
+                        "name": "${JUPYTERHUB_NAME}-nb-img",
                         "labels": {
-                            "app": "${APPLICATION_NAME}"
+                            "app": "${JUPYTERHUB_NAME}"
                         }
                     },
                     "spec": {
@@ -753,7 +775,7 @@
                             "sourceStrategy": {
                                 "from": {
                                     "kind": "ImageStreamTag",
-                                    "name": "${APPLICATION_NAME}-nb-s2i:latest"
+                                    "name": "${JUPYTERHUB_NAME}-nb-s2i:latest"
                                 },
                                 "env": [
                                     {
@@ -766,8 +788,298 @@
                         "output": {
                             "to": {
                                 "kind": "ImageStreamTag",
-                                "name": "${APPLICATION_NAME}-nb-img:latest"
+                                "name": "${JUPYTERHUB_NAME}-nb-img:latest"
                             }
+                        }
+                    }
+                },
+                {
+                    "kind": "DeploymentConfig",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${KEYCLOAK_NAME}",
+                        "labels": {
+                            "app": "${JUPYTERHUB_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "strategy": {
+                            "type": "Recreate"
+                        },
+                        "triggers": [
+                            {
+                                "type": "ConfigChange"
+                            }
+                        ],
+                        "replicas": 1,
+                        "selector": {
+                            "app": "${JUPYTERHUB_NAME}",
+                            "deploymentconfig": "${KEYCLOAK_NAME}"
+                        },
+                        "template": {
+                            "metadata": {
+                                "name": "${KEYCLOAK_NAME}",
+                                "labels": {
+                                    "app": "${JUPYTERHUB_NAME}",
+                                    "deploymentconfig": "${KEYCLOAK_NAME}"
+                                }
+                            },
+                            "spec": {
+                                "containers": [
+                                    {
+                                        "name": "keycloak",
+                                        "image": "jboss/keycloak-openshift:4.0.0.Final",
+                                        "ports": [
+                                            {
+                                                "containerPort": 8443,
+                                                "protocol": "TCP"
+                                            }
+                                        ],
+                                        "env": [
+                                            {
+                                                "name": "KEYCLOAK_USER",
+                                                "value": "${KEYCLOAK_USER}"
+                                            },
+                                            {
+                                                "name": "KEYCLOAK_PASSWORD",
+                                                "value": "${KEYCLOAK_PASSWORD}"
+                                            },
+                                            {
+                                                "name": "DB_VENDOR",
+                                                "value": "postgres"
+                                            },
+                                            {
+                                                "name": "DB_ADDR",
+                                                "value": "${KEYCLOAK_NAME}-db"
+                                            },
+                                            {
+                                                "name": "DB_PORT",
+                                                "value": "5432"
+                                            },
+                                            {
+                                                "name": "DB_DATABASE",
+                                                "value": "keycloak"
+                                            },
+                                            {
+                                                "name": "DB_USER",
+                                                "value": "keycloak"
+                                            },
+                                            {
+                                                "name": "DB_PASSWORD",
+                                                "value": "${DATABASE_PASSWORD}"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "kind": "Service",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${KEYCLOAK_NAME}",
+                        "labels": {
+                            "app": "${JUPYTERHUB_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "ports": [
+                            {
+                                "name": "8443-tcp",
+                                "protocol": "TCP",
+                                "port": 8443,
+                                "targetPort": 8443
+                            }
+                        ],
+                        "selector": {
+                            "app": "${JUPYTERHUB_NAME}",
+                            "deploymentconfig": "${KEYCLOAK_NAME}"
+                        }
+                    }
+                },
+                {
+                    "kind": "Route",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${KEYCLOAK_NAME}",
+                        "labels": {
+                            "app": "${JUPYTERHUB_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "host": "",
+                        "to": {
+                            "kind": "Service",
+                            "name": "${KEYCLOAK_NAME}",
+                            "weight": 100
+                        },
+                        "port": {
+                            "targetPort": "8443-tcp"
+                        },
+                        "tls": {
+                            "termination": "passthrough",
+                            "insecureEdgeTerminationPolicy": "Redirect"
+                        }
+                    }
+                },
+                {
+                    "kind": "PersistentVolumeClaim",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${KEYCLOAK_NAME}-db",
+                        "labels": {
+                            "app": "${JUPYTERHUB_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "accessModes": [
+                            "ReadWriteOnce"
+                        ],
+                        "resources": {
+                            "requests": {
+                                "storage": "${KEYCLOAK_VOLUME_SIZE}"
+                            }
+                        }
+                    }
+                },
+                {
+                    "apiVersion": "v1",
+                    "kind": "DeploymentConfig",
+                    "metadata": {
+                        "name": "${KEYCLOAK_NAME}-db",
+                        "labels": {
+                            "app": "${JUPYTERHUB_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "replicas": 1,
+                        "selector": {
+                            "app": "${JUPYTERHUB_NAME}",
+                            "deploymentconfig": "${KEYCLOAK_NAME}-db"
+                        },
+                        "strategy": {
+                            "type": "Recreate"
+                        },
+                        "template": {
+                            "metadata": {
+                                "labels": {
+                                    "app": "${JUPYTERHUB_NAME}",
+                                    "deploymentconfig": "${KEYCLOAK_NAME}-db"
+                                }
+                            },
+                            "spec": {
+                                "containers": [
+                                    {
+                                        "name": "postgresql",
+                                        "env": [
+                                            {
+                                                "name": "POSTGRESQL_USER",
+                                                "value": "keycloak"
+                                            },
+                                            {
+                                                "name": "POSTGRESQL_PASSWORD",
+                                                "valueFrom": {
+                                                    "secretKeyRef": {
+                                                        "name": "${JUPYTERHUB_NAME}-pgsql",
+                                                        "key": "password"
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "name": "POSTGRESQL_DATABASE",
+                                                "value": "keycloak"
+                                            }
+                                        ],
+                                        "livenessProbe": {
+                                            "tcpSocket": {
+                                                "port": 5432
+                                            }
+                                        },
+                                        "ports": [
+                                            {
+                                                "containerPort": 5432,
+                                                "protocol": "TCP"
+                                            }
+                                        ],
+                                        "readinessProbe": {
+                                            "exec": {
+                                                "command": [
+                                                    "/bin/sh",
+                                                    "-i",
+                                                    "-c",
+                                                    "psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'"
+                                                ]
+                                            }
+                                        },
+                                        "volumeMounts": [
+                                            {
+                                                "mountPath": "/var/lib/pgsql/data",
+                                                "name": "data"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "volumes": [
+                                    {
+                                        "name": "data",
+                                        "persistentVolumeClaim": {
+                                            "claimName": "${KEYCLOAK_NAME}-db"
+                                        }
+                                    },
+                                    {
+                                        "name": "config",
+                                        "configMap": {
+                                            "name": "${JUPYTERHUB_NAME}-cfg",
+                                            "defaultMode": 420
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "triggers": [
+                            {
+                                "imageChangeParams": {
+                                    "automatic": true,
+                                    "containerNames": [
+                                        "postgresql"
+                                    ],
+                                    "from": {
+                                        "kind": "ImageStreamTag",
+                                        "name": "postgresql:9.6",
+                                        "namespace": "openshift"
+                                    }
+                                },
+                                "type": "ImageChange"
+                            },
+                            {
+                                "type": "ConfigChange"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "kind": "Service",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${KEYCLOAK_NAME}-db",
+                        "labels": {
+                            "app": "${JUPYTERHUB_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "ports": [
+                            {
+                                "name": "5432-tcp",
+                                "protocol": "TCP",
+                                "port": 5432,
+                                "targetPort": 5432
+                            }
+                        ],
+                        "selector": {
+                            "app": "${JUPYTERHUB_NAME}",
+                            "deploymentconfig": "${KEYCLOAK_NAME}-db"
                         }
                     }
                 }
