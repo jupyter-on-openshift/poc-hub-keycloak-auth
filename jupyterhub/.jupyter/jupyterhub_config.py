@@ -47,6 +47,8 @@ os.environ['OAUTH2_USERNAME_KEY'] = 'preferred_username'
 from oauthenticator.generic import GenericOAuthenticator
 c.JupyterHub.authenticator_class = GenericOAuthenticator
 
+c.OAuthenticator.login_service = "KeyCloak"
+
 c.OAuthenticator.oauth_callback_url = 'https://%s/hub/oauth_callback' % jupyterhub_hostname
 
 c.OAuthenticator.client_id = os.environ.get('OAUTH_CLIENT_ID')
