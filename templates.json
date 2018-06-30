@@ -34,16 +34,6 @@
                     "value": ""
                 },
                 {
-                    "name": "OAUTH_SERVICE_TYPE",
-                    "value": "",
-                    "required": false
-                },
-                {
-                    "name": "OAUTH_CALLBACK_URL",
-                    "value": "",
-                    "required": false
-                },
-                {
                     "name": "OAUTH_CLIENT_ID",
                     "value": "",
                     "required": false
@@ -398,6 +388,14 @@
                                             {
                                                 "name": "KEYCLOAK_REALM",
                                                 "value": "jupyterhub"
+                                            },
+                                            {
+                                                "name": "OAUTH_CLIENT_ID",
+                                                "value": "${OAUTH_CLIENT_ID}"
+                                            },
+                                            {
+                                                "name": "OAUTH_CLIENT_SECRET",
+                                                "value": "${OAUTH_CLIENT_SECRET}"
                                             },
                                             {
                                                 "name": "JUPYTERHUB_NOTEBOOK_IMAGE",

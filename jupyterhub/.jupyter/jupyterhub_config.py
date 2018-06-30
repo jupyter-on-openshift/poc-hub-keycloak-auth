@@ -20,9 +20,9 @@ oapi = client.OapiApi()
 routes = oapi.list_namespaced_route(namespace)
 
 def extract_hostname(routes, name):
-    for route in routes:
-        if route['metadata']['name'] == name:
-            return route['spec']['host']
+    for route in routes.items:
+        if route.metadata.name == name:
+            return route.spec.host']
 
 jupyterhub_name = os.environ.get('JUPYTERHUB_SERVICE_NAME')
 jupyterhub_hostname = extract_hostname(routes, jupyterhub_name)
