@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if [ test -f /tmp/src/jupyterhub-realm.json ]; then
+    mv /tmp/src/jupyterhub-realm.json .
+done

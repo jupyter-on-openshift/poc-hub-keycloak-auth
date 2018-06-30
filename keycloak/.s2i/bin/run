@@ -1,0 +1,10 @@
+#!/bin/bash
+
+KEYCLOAK_ARGS=
+
+if [ -f jupyterhub-realm.json ]; then
+    KEYCLOAK_ARGS="$KEYCLOAK_ARGS -Dkeycloak.import=jupyterhub-realm.json"
+    KEYCLOAK_ARGS="$KEYCLOAK_ARGS -Dkeycloak.migration.strategy=IGNORE_EXISTING"
+fi
+
+exec start-keycloak.sh -b 0.0.0.0 $KEYCLOAK_ARGS

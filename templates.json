@@ -218,6 +218,7 @@
                         }
                     }
                 },
+
                 {
                     "kind": "BuildConfig",
                     "apiVersion": "v1",
@@ -265,6 +266,7 @@
                         }
                     }
                 },
+
                 {
                     "apiVersion": "v1",
                     "kind": "PersistentVolumeClaim",
@@ -791,6 +793,79 @@
                         }
                     }
                 },
+		{
+		    "kind": "ImageStream",
+		    "apiVersion": "v1",
+		    "metadata": {
+			"name": "${KEYCLOAK_NAME}-s2i",
+                        "labels": {
+                            "app": "${JUPYTERHUB_NAME}"
+                        }
+		    },
+		    "spec": {
+			"tags": [
+			    {
+				"name": "latest",
+				"from": {
+				    "kind": "DockerImage",
+				    "name": "jboss/keycloak-openshift:4.0.0.Final"
+				}
+			    }
+			]
+		    }
+                },
+                {
+                    "kind": "ImageStream",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${KEYCLOAK_NAME}-img",
+                        "labels": {
+                            "app": "${JUPYTERHUB_NAME}"
+                        }
+                    }
+                },
+                {
+                    "kind": "BuildConfig",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${KEYCLOAK_NAME}-img",
+                        "labels": {
+                            "app": "${JUPYTERHUB_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "triggers": [
+                            {
+                                "type": "ConfigChange"
+                            },
+                            {
+                                "type": "ImageChange"
+                            }
+                        ],
+                        "source": {
+                            "type": "Git",
+                            "git": {
+                                "uri": "https://github.com/jupyter-on-openshift/poc-hub-shared-storage-1.git"
+                            },
+                            "contextDir": "keycloak"
+                        },
+                        "strategy": {
+                            "type": "Source",
+                            "sourceStrategy": {
+                                "from": {
+                                    "kind": "ImageStreamTag",
+                                    "name": "${KEYCLOAK_NAME}-s2i:latest"
+                                }
+                            }
+                        },
+                        "output": {
+                            "to": {
+                                "kind": "ImageStreamTag",
+                                "name": "${KEYCLOAK_NAME}-img:latest"
+                            }
+                        }
+                    }
+                },
                 {
                     "kind": "DeploymentConfig",
                     "apiVersion": "v1",
@@ -805,6 +880,19 @@
                             "type": "Recreate"
                         },
                         "triggers": [
+                            {
+                                "imageChangeParams": {
+                                    "automatic": true,
+                                    "containerNames": [
+                                        "keycloak"
+                                    ],
+                                    "from": {
+                                        "kind": "ImageStreamTag",
+                                        "name": "${KEYCLOAK_NAME}-img:latest"
+                                    }
+                                },
+                                "type": "ImageChange"
+                            },
                             {
                                 "type": "ConfigChange"
                             }
@@ -826,7 +914,6 @@
                                 "containers": [
                                     {
                                         "name": "keycloak",
-                                        "image": "jboss/keycloak-openshift:4.0.0.Final",
                                         "ports": [
                                             {
                                                 "containerPort": 8443,
