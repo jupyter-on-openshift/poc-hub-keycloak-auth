@@ -48,10 +48,6 @@
                     "value": "3600"
                 },
                 {
-                    "name": "JUPYTERHUB_ENABLE_LAB",
-                    "value": "false"
-                },
-                {
                     "name": "POSTGRESQL_VOLUME_SIZE",
                     "value": "1Gi",
                     "required": true
@@ -257,28 +253,7 @@
                         },
                         "resources": {
                             "limits": {
-                                "memory": "3Gi"
-                            }
-                        }
-                    }
-                },
-
-                {
-                    "apiVersion": "v1",
-                    "kind": "PersistentVolumeClaim",
-                    "metadata": {
-                        "name": "${JUPYTERHUB_NAME}-notebooks",
-                        "labels": {
-                            "app": "${JUPYTERHUB_NAME}"
-                        }
-                    },
-                    "spec": {
-                        "accessModes": [
-                            "ReadWriteMany"
-                        ],
-                        "resources": {
-                            "requests": {
-                                "storage": "${NOTEBOOK_VOLUME_SIZE}"
+                                "memory": "1Gi"
                             }
                         }
                     }
@@ -404,10 +379,6 @@
                                                 "value": "${JUPYTERHUB_IDLE_TIMEOUT}"
                                             },
                                             {
-                                                "name": "JUPYTERHUB_ENABLE_LAB",
-                                                "value": "${JUPYTERHUB_ENABLE_LAB}"
-                                            },
-                                            {
                                                 "name": "JUPYTERHUB_DATABASE_PASSWORD",
                                                 "valueFrom": {
                                                     "secretKeyRef": {
@@ -429,10 +400,6 @@
                                             {
                                                 "name": "config",
                                                 "mountPath": "/opt/app-root/configs"
-                                            },
-                                            {
-                                                "name": "notebooks",
-                                                "mountPath": "/opt/app-root/notebooks"
                                             }
                                         ]
                                     }
@@ -443,12 +410,6 @@
                                         "configMap": {
                                             "name": "${JUPYTERHUB_NAME}-cfg",
                                             "defaultMode": 420
-                                        }
-                                    },
-                                    {
-                                        "name": "notebooks",
-                                        "persistentVolumeClaim": {
-                                            "claimName": "${JUPYTERHUB_NAME}-notebooks"
                                         }
                                     }
                                 ]
@@ -714,13 +675,7 @@
                                     "kind": "ImageStreamTag",
                                     "name": "python:3.6",
                                     "namespace": "openshift"
-                                },
-				"env": [
-				    {
-					"name": "JUPYTER_INSTALL_LAB",
-					"value": "true"
-				    }
-				]
+                                }
                             }
                         },
                         "output": {
