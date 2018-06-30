@@ -868,6 +868,10 @@
                                         "name": "keycloak",
                                         "ports": [
                                             {
+                                                "containerPort": 8080,
+                                                "protocol": "TCP"
+                                            },
+                                            {
                                                 "containerPort": 8443,
                                                 "protocol": "TCP"
                                             }
@@ -917,6 +921,10 @@
                                             {
                                                 "name": "DB_PASSWORD",
                                                 "value": "${DATABASE_PASSWORD}"
+                                            },
+                                            {
+                                                "name": "PROXY_ADDRESS_FORWARDING",
+                                                "value": "true"
                                             }
                                         ]
                                     }
@@ -936,6 +944,12 @@
                     },
                     "spec": {
                         "ports": [
+                            {
+                                "name": "8080-tcp",
+                                "protocol": "TCP",
+                                "port": 8080,
+                                "targetPort": 8080
+                            },
                             {
                                 "name": "8443-tcp",
                                 "protocol": "TCP",
@@ -966,10 +980,10 @@
                             "weight": 100
                         },
                         "port": {
-                            "targetPort": "8443-tcp"
+                            "targetPort": "8080-tcp"
                         },
                         "tls": {
-                            "termination": "passthrough",
+                            "termination": "edge",
                             "insecureEdgeTerminationPolicy": "Redirect"
                         }
                     }
