@@ -17,8 +17,8 @@ KEYCLOAK_ARGS=
 
 if [ -f jupyterhub-realm.json ]; then
     cat jupyterhub-realm.json | sed \
-        -e "s/{{ JUPYTERHUB_HOSTNAME }}/$JUPYTERHUB_HOSTNAME/g" \
-        -e "s/{{ OAUTH_CLIENT_SECRET }}/$OAUTH_CLIENT_SECRET/g" > /tmp/realm.json
+        -e "s/{{ *JUPYTERHUB_HOSTNAME *}}/$JUPYTERHUB_HOSTNAME/g" \
+        -e "s/{{ *OAUTH_CLIENT_SECRET *}}/$OAUTH_CLIENT_SECRET/g" > /tmp/realm.json
 
     KEYCLOAK_ARGS="$KEYCLOAK_ARGS -Dkeycloak.import=/tmp/realm.json"
     KEYCLOAK_ARGS="$KEYCLOAK_ARGS -Dkeycloak.migration.strategy=IGNORE_EXISTING"

@@ -872,7 +872,6 @@
                         }
                     },
                     "spec": {
-                        "serviceAccountName": "${JUPYTERHUB_NAME}-hub",
                         "strategy": {
                             "type": "Recreate"
                         },
@@ -908,6 +907,7 @@
                                 }
                             },
                             "spec": {
+                                "serviceAccountName": "${JUPYTERHUB_NAME}-hub",
                                 "containers": [
                                     {
                                         "name": "keycloak",
