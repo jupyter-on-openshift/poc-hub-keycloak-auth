@@ -1,0 +1,2 @@
+-e git+https://github.com/jupyter-on-openshift/kubespawner#egg=jupyterhub-kubespawner
+openshift==0.6.1
