@@ -104,8 +104,9 @@ c.KubeSpawner.volume_mounts = [
     }
 ]
 
-c.Spawner.environment.update(dict(JUPYTER_MASTER_FILES='/opt/app-root/master',
-    JUPYTER_WORKSPACE_NAME='/opt/app-root/src/workspace'))
+c.Spawner.environment.update(dict(
+    JUPYTER_MASTER_FILES='/opt/app-root/master',
+    JUPYTER_WORKSPACE_NAME='workspace'))
 
 # Setup culling of idle notebooks if timeout parameter is supplied.
 
