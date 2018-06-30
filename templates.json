@@ -872,6 +872,11 @@
                                                 "protocol": "TCP"
                                             }
                                         ],
+					"resources": {
+					    "limits": {
+						"memory": "1Gi"
+					    }
+					},
                                         "env": [
                                             {
                                                 "name": "JUPYTERHUB_SERVICE_NAME",
