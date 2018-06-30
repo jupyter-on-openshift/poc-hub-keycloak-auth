@@ -53,17 +53,17 @@
                 },
                 {
                     "name": "POSTGRESQL_VOLUME_SIZE",
-                    "value": "512Mi",
+                    "value": "1Gi",
                     "required": true
                 },
                 {
                     "name": "KEYCLOAK_VOLUME_SIZE",
-                    "value": "512Mi",
+                    "value": "1Gi",
                     "required": true
                 },
                 {
                     "name": "NOTEBOOK_VOLUME_SIZE",
-                    "value": "25Gi",
+                    "value": "1Gi",
                     "required": true
                 },
                 {
