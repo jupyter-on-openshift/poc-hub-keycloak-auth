@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 KEYCLOAK_ARGS=
 
 if [ -f jupyterhub-realm.json ]; then
