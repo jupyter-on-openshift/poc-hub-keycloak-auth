@@ -411,6 +411,10 @@
                                             {
                                                 "name": "JUPYTERHUB_COOKIE_SECRET",
                                                 "value": "${COOKIE_SECRET}"
+                                            },
+                                            {
+                                                "name": "NOTEBOOK_VOLUME_SIZE",
+                                                "value": "${NOTEBOOK_VOLUME_SIZE}"
                                             }
                                         ],
                                         "volumeMounts": [

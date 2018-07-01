@@ -86,7 +86,7 @@ if os.path.exists('/opt/app-root/configs/user_whitelist.txt'):
 c.KubeSpawner.user_storage_pvc_ensure = True
 
 c.KubeSpawner.pvc_name_template = '%s-nb-{username}' % c.KubeSpawner.hub_connect_ip
-c.KubeSpawner.user_storage_capacity = '1Gi'
+c.KubeSpawner.user_storage_capacity = os.environ['NOTEBOOK_VOLUME_SIZE']
 
 c.KubeSpawner.volumes = [
     {
