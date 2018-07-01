@@ -100,7 +100,8 @@ c.KubeSpawner.volumes = [
 c.KubeSpawner.volume_mounts = [
     {
         'name': 'data',
-        'mountPath': '/opt/app-root/src'
+        'mountPath': '/opt/app-root/src',
+        'subPath': 'notebooks'
     }
 ]
 
