@@ -26,12 +26,20 @@
                 },
                 {
                     "name": "NOTEBOOK_REPOSITORY_URL",
-                    "value": "",
+                    "value": "https://github.com/jakevdp/PythonDataScienceHandbook",
                     "required": true
                 },
                 {
                     "name": "NOTEBOOK_REPOSITORY_CONTEXT_DIR",
                     "value": ""
+                },
+                {
+                    "name": "NOTEBOOK_PYTHON_VERSION",
+                    "value": "3.5"
+                },
+                {
+                    "name": "JUPYTERLAB_ENABLED",
+                    "value": "true"
                 },
                 {
                     "name": "JUPYTERHUB_ADMIN_USERS",
@@ -72,18 +80,18 @@
                     "value": "",
                     "required": false
                 },
-		{
-		    "name": "KEYCLOAK_USER",
-		    "generate": "expression",
-		    "from": "[a-zA-Z0-9]{8}",
-		    "required": true
-		},
-		{
-		    "name": "KEYCLOAK_PASSWORD",
-		    "generate": "expression",
-		    "from": "[a-zA-Z0-9]{16}",
-		    "required": true
-		},
+                {
+                    "name": "KEYCLOAK_USER",
+                    "generate": "expression",
+                    "from": "[a-zA-Z0-9]{8}",
+                    "required": true
+                },
+                {
+                    "name": "KEYCLOAK_PASSWORD",
+                    "generate": "expression",
+                    "from": "[a-zA-Z0-9]{16}",
+                    "required": true
+                },
                 {
                     "name": "DATABASE_PASSWORD",
                     "generate": "expression",
@@ -197,6 +205,11 @@
                                 "kind": "ImageStreamTag",
                                 "name": "${JUPYTERHUB_NAME}-hub-s2i:latest"
                             }
+                        },
+                        "resources": {
+                            "limits": {
+                                "memory": "3Gi"
+                            }
                         }
                     }
                 },
@@ -253,7 +266,7 @@
                         },
                         "resources": {
                             "limits": {
-                                "memory": "1Gi"
+                                "memory": "3Gi"
                             }
                         }
                     }
@@ -268,10 +281,10 @@
                         }
                     },
                     "stringData": {
-			"password": "${DATABASE_PASSWORD}"
+                        "password": "${DATABASE_PASSWORD}"
                     }
                 },
-	        {
+                {
                     "kind": "DeploymentConfig",
                     "apiVersion": "v1",
                     "metadata": {
@@ -377,6 +390,10 @@
                                             {
                                                 "name": "JUPYTERHUB_IDLE_TIMEOUT",
                                                 "value": "${JUPYTERHUB_IDLE_TIMEOUT}"
+                                            },
+                                            {
+                                                "name": "JUPYTERHUB_ENABLE_LAB",
+                                                "value": "${JUPYTERLAB_ENABLED}"
                                             },
                                             {
                                                 "name": "JUPYTERHUB_DATABASE_PASSWORD",
@@ -673,9 +690,15 @@
                             "sourceStrategy": {
                                 "from": {
                                     "kind": "ImageStreamTag",
-                                    "name": "python:3.6",
+                                    "name": "python:${NOTEBOOK_PYTHON_VERSION}",
                                     "namespace": "openshift"
-                                }
+                                },
+                                "env": [
+                                    {
+                                        "name": "JUPYTER_INSTALL_LAB",
+                                        "value": "${JUPYTERLAB_ENABLED}"
+                                    }
+                                ]
                             }
                         },
                         "output": {
@@ -744,26 +767,26 @@
                         }
                     }
                 },
-		{
-		    "kind": "ImageStream",
-		    "apiVersion": "v1",
-		    "metadata": {
-			"name": "${KEYCLOAK_NAME}-s2i",
+                {
+                    "kind": "ImageStream",
+                    "apiVersion": "v1",
+                    "metadata": {
+                        "name": "${KEYCLOAK_NAME}-s2i",
                         "labels": {
                             "app": "${JUPYTERHUB_NAME}"
                         }
-		    },
-		    "spec": {
-			"tags": [
-			    {
-				"name": "latest",
-				"from": {
-				    "kind": "DockerImage",
-				    "name": "jboss/keycloak-openshift:4.0.0.Final"
-				}
-			    }
-			]
-		    }
+                    },
+                    "spec": {
+                        "tags": [
+                            {
+                                "name": "latest",
+                                "from": {
+                                    "kind": "DockerImage",
+                                    "name": "jboss/keycloak-openshift:4.0.0.Final"
+                                }
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "ImageStream",
@@ -876,11 +899,11 @@
                                                 "protocol": "TCP"
                                             }
                                         ],
-					"resources": {
-					    "limits": {
-						"memory": "1Gi"
-					    }
-					},
+                                        "resources": {
+                                            "limits": {
+                                                "memory": "1Gi"
+                                            }
+                                        },
                                         "env": [
                                             {
                                                 "name": "JUPYTERHUB_SERVICE_NAME",
