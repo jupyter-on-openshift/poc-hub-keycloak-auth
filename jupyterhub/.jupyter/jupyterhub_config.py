@@ -1,6 +1,4 @@
 import os
-import string
-import escapism
 
 # Enable JupyterLab interface if enabled.
 
@@ -13,7 +11,7 @@ if os.environ.get('JUPYTERHUB_ENABLE_LAB', 'false').lower() in ['true', 'yes', '
 
 c.JupyterHub.template_paths = ['/opt/app-root/src/templates']
 
-# Optionally enable user authentication for selected OAuth providers.
+# Configure KeyCloak as authentication provider.
 
 from openshift import client, config
 
