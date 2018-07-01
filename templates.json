@@ -72,7 +72,7 @@
                 },
                 {
                     "name": "NOTEBOOK_MEMORY",
-                    "value": "512Mi",
+                    "value": "1Gi",
                     "required": true
                 },
                 {
