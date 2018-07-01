@@ -240,7 +240,7 @@
                         "source": {
                             "type": "Git",
                             "git": {
-                                "uri": "https://github.com/jupyter-on-openshift/poc-hub-shared-storage-1.git"
+                                "uri": "https://github.com/jupyter-on-openshift/poc-hub-keycloak-auth.git"
                             },
                             "contextDir": "jupyterhub"
                         },
@@ -823,7 +823,7 @@
                         "source": {
                             "type": "Git",
                             "git": {
-                                "uri": "https://github.com/jupyter-on-openshift/poc-hub-shared-storage-1.git"
+                                "uri": "https://github.com/jupyter-on-openshift/poc-hub-keycloak-auth.git"
                             },
                             "contextDir": "keycloak"
                         },
