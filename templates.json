@@ -205,11 +205,6 @@
                                 "kind": "ImageStreamTag",
                                 "name": "${JUPYTERHUB_NAME}-hub-s2i:latest"
                             }
-                        },
-                        "resources": {
-                            "limits": {
-                                "memory": "3Gi"
-                            }
                         }
                     }
                 },
@@ -262,11 +257,6 @@
                             "to": {
                                 "kind": "ImageStreamTag",
                                 "name": "${JUPYTERHUB_NAME}-hub-img:latest"
-                            }
-                        },
-                        "resources": {
-                            "limits": {
-                                "memory": "3Gi"
                             }
                         }
                     }
@@ -710,6 +700,11 @@
                                 "kind": "ImageStreamTag",
                                 "name": "${JUPYTERHUB_NAME}-nb-s2i:latest"
                             }
+                        },
+                        "resources": {
+                            "limits": {
+                                "memory": "3Gi"
+                            }
                         }
                     }
                 },
@@ -767,6 +762,11 @@
                             "to": {
                                 "kind": "ImageStreamTag",
                                 "name": "${JUPYTERHUB_NAME}-nb-img:latest"
+                            }
+                        },
+                        "resources": {
+                            "limits": {
+                                "memory": "3Gi"
                             }
                         }
                     }
