@@ -34,6 +34,10 @@
             "value": "3.5"
         },
         {
+            "name": "NOTEBOOK_REQUIREMENTS_TXT",
+            "value": ""
+        },
+        {
             "name": "JUPYTERLAB_ENABLED",
             "value": "true"
         },
@@ -671,7 +675,8 @@
                 "source": {
                     "type": "Git",
                     "git": {
-                        "uri": "https://github.com/jupyter-on-openshift/jupyter-notebooks.git"
+                        "uri": "https://github.com/jupyter-on-openshift/jupyter-notebooks.git",
+                        "ref": "1.0.0"
                     },
                     "contextDir": "minimal-notebook"
                 },
@@ -702,6 +707,19 @@
                         "memory": "3Gi"
                     }
                 }
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Secret",
+            "metadata": {
+                "name": "${JUPYTERHUB_NAME}-nb",
+                "labels": {
+                    "app": "${JUPYTERHUB_NAME}"
+                }
+            },
+            "stringData": {
+                "requirements.txt": "${NOTEBOOK_REQUIREMENTS_TXT}"
             }
         },
         {
@@ -737,7 +755,15 @@
                     "git": {
                         "uri": "${NOTEBOOK_REPOSITORY_URL}"
                     },
-                    "contextDir": "${NOTEBOOK_REPOSITORY_CONTEXT_DIR}"
+                    "contextDir": "${NOTEBOOK_REPOSITORY_CONTEXT_DIR}",
+                    "secrets": [
+                        {
+                            "secret" : {
+                                "name": "${JUPYTERHUB_NAME}-nb"
+                            },
+                            "destinationDir": "/tmp/build"
+                        }
+                    ]
                 },
                 "strategy": {
                     "type": "Source",
