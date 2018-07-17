@@ -50,7 +50,6 @@ os.environ['OAUTH2_USERDATA_URL'] = 'https://%s/auth/realms/%s/protocol/openid-c
 os.environ['OAUTH2_TLS_VERIFY'] = '0'
 os.environ['OAUTH_TLS_VERIFY'] = '0'
 
-os.environ['OAUTH2_USERDATA_METHOD'] = 'POST'
 os.environ['OAUTH2_USERNAME_KEY'] = 'preferred_username'
 
 from oauthenticator.generic import GenericOAuthenticator
