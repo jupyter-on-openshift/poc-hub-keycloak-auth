@@ -465,6 +465,9 @@
                 "name": "${JUPYTERHUB_NAME}",
                 "labels": {
                     "app": "${JUPYTERHUB_NAME}"
+                },
+                "annotations": {
+                    "haproxy.router.openshift.io/hsts_header": "max-age=31536000;includeSubDomains"
                 }
             },
             "spec": {
@@ -478,8 +481,7 @@
                     "targetPort": "8080-tcp"
                 },
                 "tls": {
-                    "termination": "edge",
-                    "insecureEdgeTerminationPolicy": "Redirect"
+                    "termination": "edge"
                 }
             }
         },
@@ -1019,6 +1021,9 @@
                 "name": "${KEYCLOAK_NAME}",
                 "labels": {
                     "app": "${JUPYTERHUB_NAME}"
+                },
+                "annotations": {
+                    "haproxy.router.openshift.io/hsts_header": "max-age=31536000;includeSubDomains"
                 }
             },
             "spec": {
@@ -1032,8 +1037,7 @@
                     "targetPort": "8080-tcp"
                 },
                 "tls": {
-                    "termination": "edge",
-                    "insecureEdgeTerminationPolicy": "Redirect"
+                    "termination": "edge"
                 }
             }
         },
