@@ -28,8 +28,8 @@ def extract_hostname(routes, name):
         if route.metadata.name == name:
             return route.spec.host
 
-jupyterhub_name = os.environ.get('JUPYTERHUB_SERVICE_NAME')
-jupyterhub_hostname = extract_hostname(routes, jupyterhub_name)
+application_name = os.environ.get('APPLICATION_NAME')
+jupyterhub_hostname = extract_hostname(routes, application_name)
 print('jupyterhub_hostname', jupyterhub_hostname)
 
 keycloak_name = os.environ.get('KEYCLOAK_SERVICE_NAME')
@@ -38,7 +38,8 @@ print('keycloak_hostname', keycloak_hostname)
 
 keycloak_realm = os.environ.get('KEYCLOAK_REALM')
 
-keycloak_account_url = 'https://%s/auth/realms/jupyterhub/account' % keycloak_hostname
+keycloak_account_url = 'https://%s/auth/realms/%s/account' % (
+        keycloak_hostname, keycloak_realm)
 
 with open('templates/vars.html', 'w') as fp:
     fp.write('{%% set keycloak_account_url = "%s" %%}' % keycloak_account_url)
@@ -82,7 +83,7 @@ if os.path.exists('/opt/app-root/configs/user_whitelist.txt'):
 
 c.KubeSpawner.user_storage_pvc_ensure = True
 
-c.KubeSpawner.pvc_name_template = '%s-nb-{username}' % c.KubeSpawner.hub_connect_ip
+c.KubeSpawner.pvc_name_template = '%s-nb-{username}' % application_name
 c.KubeSpawner.user_storage_capacity = os.environ['NOTEBOOK_VOLUME_SIZE']
 
 c.KubeSpawner.volumes = [

@@ -1,2 +1,0 @@
--e git+https://github.com/jupyterhub/kubespawner@b58976b989e4241f5a7ff3a797dc9aabefba001c#egg=jupyterhub-kubespawner
-openshift==0.6.1
