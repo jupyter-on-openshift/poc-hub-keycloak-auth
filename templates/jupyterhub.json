@@ -160,7 +160,10 @@
             "kind": "ImageStream",
             "apiVersion": "image.openshift.io/v1",
             "metadata": {
-                "name": "${APPLICATION_NAME}-hub-s2i"
+                "name": "${APPLICATION_NAME}-hub-s2i",
+                "labels": {
+                    "app": "${APPLICATION_NAME}"
+                }
             },
             "spec": {
                 "lookupPolicy": {
@@ -618,7 +621,10 @@
             "kind": "ImageStream",
             "apiVersion": "image.openshift.io/v1",
             "metadata": {
-                "name": "${APPLICATION_NAME}-nb-s2i"
+                "name": "${APPLICATION_NAME}-nb-s2i",
+                "labels": {
+                    "app": "${APPLICATION_NAME}"
+                }
             },
             "spec": {
                 "lookupPolicy": {
