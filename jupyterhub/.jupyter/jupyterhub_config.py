@@ -13,24 +13,17 @@ c.JupyterHub.template_paths = ['/opt/app-root/src/templates']
 
 # Configure KeyCloak as authentication provider.
 
-from openshift import client, config
+route_resource = api_client.resources.get(
+     api_version='route.openshift.io/v1', kind='Route')
 
-with open('/var/run/secrets/kubernetes.io/serviceaccount/namespace') as fp:
-    namespace = fp.read().strip()
-
-config.load_incluster_config()
-oapi = client.OapiApi()
-
-routes = oapi.list_namespaced_route(namespace)
+routes = route_resource.get(namespace=namespace)
 
 def extract_hostname(routes, name):
     for route in routes.items:
         if route.metadata.name == name:
             return route.spec.host
 
-application_name = os.environ.get('APPLICATION_NAME')
-jupyterhub_hostname = extract_hostname(routes, application_name)
-print('jupyterhub_hostname', jupyterhub_hostname)
+public_hostname = extract_hostname(routes, application_name)
 
 keycloak_name = os.environ.get('KEYCLOAK_SERVICE_NAME')
 keycloak_hostname = extract_hostname(routes, keycloak_name)
@@ -58,7 +51,7 @@ c.JupyterHub.authenticator_class = GenericOAuthenticator
 
 c.OAuthenticator.login_service = "KeyCloak"
 
-c.OAuthenticator.oauth_callback_url = 'https://%s/hub/oauth_callback' % jupyterhub_hostname
+c.OAuthenticator.oauth_callback_url = 'https://%s/hub/oauth_callback' % public_hostname
 
 c.OAuthenticator.client_id = os.environ.get('OAUTH_CLIENT_ID')
 c.OAuthenticator.client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
