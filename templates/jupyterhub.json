@@ -295,7 +295,7 @@
                         "initContainers": [
                             {
                                 "name": "wait-for-database",
-                                "image": "${JUPYTERHUB_IMAGE}",
+                                "image": "${APPLICATION_NAME}-hub-img:latest",
                                 "command": [ "wait-for-database" ],
                                 "env": [
                                     {
@@ -317,7 +317,7 @@
                         "containers": [
                             {
                                 "name": "jupyterhub",
-                                "image": "${JUPYTERHUB_IMAGE}",
+                                "image": "${APPLICATION_NAME}-hub-img:latest",
                                 "ports": [
                                     {
                                         "containerPort": 8080,
