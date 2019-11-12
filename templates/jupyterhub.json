@@ -171,10 +171,10 @@
                 },
                 "tags": [
                     {
-                        "name": "3.1.0",
+                        "name": "latest",
                         "from": {
                             "kind": "DockerImage",
-                            "name": "quay.io/jupyteronopenshift/jupyterhub:3.1.0"
+                            "name": "quay.io/jupyteronopenshift/jupyterhub:3.3.1"
                         }
                     }
                 ]
@@ -221,7 +221,7 @@
                     "sourceStrategy": {
                         "from": {
                             "kind": "ImageStreamTag",
-                            "name": "${APPLICATION_NAME}-hub-s2i:3.1.0"
+                            "name": "${APPLICATION_NAME}-hub-s2i:latest"
                         }
                     }
                 },
@@ -635,14 +635,14 @@
                         "name": "3.5",
                         "from": {
                             "kind": "DockerImage",
-                            "name": "quay.io/jupyteronopenshift/s2i-minimal-notebook-py35:2.2.2"
+                            "name": "quay.io/jupyteronopenshift/s2i-minimal-notebook-py35:2.4.0"
                         }
                     },
                     {
                         "name": "3.6",
                         "from": {
                             "kind": "DockerImage",
-                            "name": "quay.io/jupyteronopenshift/s2i-minimal-notebook-py36:2.2.2"
+                            "name": "quay.io/jupyteronopenshift/s2i-minimal-notebook-py36:2.4.0"
                         }
                     }
                 ]
@@ -736,27 +736,6 @@
             "kind": "ImageStream",
             "apiVersion": "v1",
             "metadata": {
-                "name": "${KEYCLOAK_NAME}-s2i",
-                "labels": {
-                    "app": "${APPLICATION_NAME}"
-                }
-            },
-            "spec": {
-                "tags": [
-                    {
-                        "name": "latest",
-                        "from": {
-                            "kind": "DockerImage",
-                            "name": "jboss/keycloak-openshift:4.0.0.Final"
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "kind": "ImageStream",
-            "apiVersion": "v1",
-            "metadata": {
                 "name": "${KEYCLOAK_NAME}-img",
                 "labels": {
                     "app": "${APPLICATION_NAME}"
@@ -790,10 +769,10 @@
                 },
                 "strategy": {
                     "type": "Source",
-                    "sourceStrategy": {
+                    "dockerStrategy": {
                         "from": {
-                            "kind": "ImageStreamTag",
-                            "name": "${KEYCLOAK_NAME}-s2i:latest"
+                            "kind": "DockerImage",
+                            "name": "jboss/keycloak:7.0.1"
                         }
                     }
                 },
